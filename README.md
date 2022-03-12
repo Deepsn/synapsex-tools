@@ -24,7 +24,7 @@ The extension aims to migrate the Synapse X scripting experience to VSCode workf
 To use the integrated output on vscode, you will need to put this script to the `autoexec` folder:
 
 ```lua
-loadstring()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Deepsn/synapsex-tools/main/OutputRedirect.lua"))()
 ```
 
 ---
