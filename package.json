@@ -14,7 +14,7 @@
     "onCommand:synapsex-utils.execute"
   ],
   "publisher": "Speed",
-  "main": "./out/extension.js",
+  "main": "./out/main.js",
   "contributes": {
     "commands": [
       {
