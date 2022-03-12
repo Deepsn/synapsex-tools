@@ -1,0 +1,15 @@
+{
+	"fail": "$(testing-failed-icon) Failed to execute",
+	"fail-inject": "$(testing-failed-icon) Failed to inject",
+	"executed": "$(testing-passed-icon) Script Executed",
+	"idle": "$(testing-run-icon) Synapse execute",
+	"loading": "$(loading~spin) Executing",
+	"wait": "$(loading~spin) Attaching",
+	"wait-status": "$(loading~spin) Status: ",
+
+	"checking": "$(loading~spin) Checking Synapse",
+	"noContent": "$(question) No script to execute",
+
+	"reconnect": "$(refresh) Reconnect to Synapse",
+	"reconnectSuccess": "$(testing-passed-icon) Reconnected to Synapse"
+}
