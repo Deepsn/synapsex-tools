@@ -2,7 +2,7 @@
   "name": "syn-util",
   "displayName": "SynapseX Utils",
   "description": "tools for synapse x script development",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.65.0"
   },
