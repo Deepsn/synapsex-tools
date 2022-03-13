@@ -79,7 +79,7 @@ function notify(content: string, timeout?: number) {
 
 
 export async function activate(context: ExtensionContext) {
-	console.log("Extension activated -");
+	console.log("Extension activated");
 	
 	sOutput = new WebSocketServer({ port: 24892 });
 
