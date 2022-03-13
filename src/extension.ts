@@ -5,7 +5,7 @@ import ws, {WebSocketServer} from "ws";
 import actions from "./actions.json";
 
 const mainUrl = "ws://localhost:24892/";
-const wsTimeout = 5 * 1000;
+const wsTimeout = 2 * 60 * 1000;
 var active = false;
 
 const sExecute = new websocket(mainUrl + "execute", {
@@ -40,6 +40,11 @@ function waitSocket(socket: websocket) {
 
 		socket.onMessage.addOnceListener((response) => {
 			clearTimeout(id);
+
+			if (response && response instanceof Buffer) {
+				response = response.toString("utf-8");
+			}
+
 			resolve(response);
 		});
 	});
@@ -74,7 +79,7 @@ function notify(content: string, timeout?: number) {
 
 
 export async function activate(context: ExtensionContext) {
-	console.log("Extension activated");
+	console.log("Extension activated -");
 	
 	sOutput = new WebSocketServer({ port: 24892 });
 
@@ -98,21 +103,35 @@ export async function activate(context: ExtensionContext) {
 	
 	async function attach() {
 		// Trying to attach synapse
+		console.log("Trying to attach");
+		
+		executeButton.text = actions.wait;
 		sAttach.send("ATTACH");
 
-		let success = false;
+		let success = null;
+		let attachStatus = null;
 		let validStatus = ["TRUE", "READY", "ALREADY_ATTACHED", "REATTACH_READY"];
 		let invalidStatus = ["FALSE", "NOT_LATEST_VERSION", "FAILED_TO_FIND", "INTERRUPT", "TIMEOUT"];
 		
 		while (active) {
 			let status = await waitSocket(sAttach)
-				.catch(() => {
+				.catch((err) => {
+					console.log("Error while waiting socket, error:", err);
+					
+					attachStatus = err;
 					success = false;
 				});
+			
+			console.log("Current attach status:", status);
+			
+			if (success === false) {
+				break;
+			}
 			
 			if (status && typeof(status) === "string") {
 				executeButton.text = actions['wait-status'] + status;
 
+				attachStatus = status;
 				if (validStatus.includes(status)) {
 					success = true;
 					break;
@@ -124,9 +143,9 @@ export async function activate(context: ExtensionContext) {
 			}
 		}
 
-		executeButton.text = actions.wait;
+		console.log("Attach status:", success);
 
-		return success;
+		return { success, attachStatus };
 	}
 
 
@@ -141,22 +160,19 @@ export async function activate(context: ExtensionContext) {
 					notify("Synapse is not ready, error code: " + errorCode);
 				}
 			});
-
-		if (status && status instanceof Buffer) {
-			status = status.toString("utf-8");
-		}
 		
+		console.log("Synapse status:", status);
 		
 		// Attach process
 		if (status === "FALSE") {
 			executeButton.text = actions.wait;
 
-			const injectStatus = await attach();
+			const { success, attachStatus } = await attach();
 			
-			if (!injectStatus) {
+			if (!success) {
 				executeButton.text = actions["fail-inject"];
 				if (getConfig("showErrorMessages")) {
-					notify("Failed to inject");
+					notify("Failed to inject, Status: " + (attachStatus || "TIMEOUT"));
 				}
 				return;
 			}
@@ -176,11 +192,8 @@ export async function activate(context: ExtensionContext) {
 		
 		// Execute content
 		sExecute.send(content);
-		let executeStatus = await waitSocket(sExecute);
 
-		if (executeStatus && executeStatus instanceof Buffer) {
-			executeStatus = executeStatus.toString("utf-8");
-		}
+		let executeStatus = await waitSocket(sExecute);
 		
 		if (executeStatus === "OK") {
 			executeButton.text = actions.executed;
